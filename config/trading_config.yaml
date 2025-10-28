@@ -1,0 +1,165 @@
+# Hyperliquid Trading System Configuration
+
+trading:
+  # Primary trading pairs
+  pairs:
+    - symbol: "SOL"
+      enabled: true
+      max_position_size: 5000
+      min_order_size: 10
+    - symbol: "HYPE"
+      enabled: true
+      max_position_size: 4000
+      min_order_size: 10
+    - symbol: "DOGE"
+      enabled: true
+      max_position_size: 3000
+      min_order_size: 100
+
+  # Position management
+  max_concurrent_positions: 4
+  default_position_size_percent: 18  # % of active capital per trade
+  max_correlation: 0.7  # Max correlation between concurrent positions
+
+risk:
+  # Capital allocation
+  active_capital: 15000
+  total_capital: 1000000
+
+  # Loss limits
+  max_daily_loss: 750  # $750 = 5% of active capital
+  max_drawdown: 3000  # $3000 = 20% of active capital
+  max_consecutive_losses: 5
+
+  # Leverage
+  default_leverage: 4
+  max_leverage: 8
+  scale_in_leverage: 8  # For DCA on winners
+
+  # Position sizing (Kelly Criterion)
+  kelly_fraction: 0.25  # Use 25% of Kelly for safety
+  min_position_size: 100
+  max_position_size: 5000
+
+execution:
+  # Order execution
+  max_slippage_bps: 20  # 20 basis points
+  order_timeout_seconds: 30
+  max_retry_attempts: 3
+  retry_backoff_base: 2  # Exponential backoff
+
+  # Rate limits (Hyperliquid: 1200 weight/min)
+  rate_limit_weight_per_minute: 1200
+  rate_limit_buffer: 0.8  # Use 80% to be safe
+
+hyperliquid:
+  # API endpoints
+  mainnet_url: "https://api.hyperliquid.xyz"
+  testnet_url: "https://api.hyperliquid-testnet.xyz"
+  ws_url: "wss://api.hyperliquid.xyz/ws"
+
+  # WebSocket
+  ws_reconnect_delay: 5
+  ws_max_reconnect_attempts: 10
+  ws_ping_interval: 30
+
+  # Market data
+  orderbook_depth: 5  # L2 depth to track
+  snapshot_interval: 1000  # ms
+
+strategies:
+  orderbook_imbalance:
+    enabled: true
+    imbalance_threshold: 0.6  # ρ > 0.6 for entry
+    holding_period_seconds: 45  # 30-60 second scalps
+    stop_loss_bps: 50  # 0.5% stop
+    take_profit_bps: 100  # 1% target
+    nansen_confirmation_required: true
+
+  volume_profile:
+    enabled: true
+    lookback_period_hours: 24
+    value_area_percent: 70  # 70% of volume
+    lvn_threshold: 0.3  # Low volume node threshold
+    stop_loss_atr_multiple: 2.0
+    holding_period_hours: 3
+
+  smart_momentum:
+    enabled: true
+    nansen_weight: 0.6  # 60% weight to Nansen signals
+    technical_weight: 0.4  # 40% weight to technicals
+    smart_money_threshold: 0.3  # >30% net buying
+    scale_in_stages: [0.25, 0.25, 0.30, 0.20]  # Progressive scaling
+    never_average_down: true
+
+nansen:
+  # Query intervals
+  query_interval_seconds: 150  # 2.5 minutes
+
+  # Signal weights (will be adjusted by AI learning)
+  smart_money_flow_weight: 0.35
+  exchange_netflow_weight: 0.25
+  whale_movements_weight: 0.25
+  token_velocity_weight: 0.15
+
+  # Thresholds
+  accumulation_threshold: 0.3
+  distribution_threshold: -0.3
+  whale_movement_min_usd: 100000
+
+ai:
+  # Reinforcement Learning
+  rl_enabled: false  # Start with false, enable after paper trading
+  learning_rate: 0.0003
+  gamma: 0.99  # Discount factor
+  gae_lambda: 0.95
+  clip_range: 0.2
+
+  # Training
+  train_interval_hours: 24
+  min_trades_before_training: 50
+
+  # Continuous improvement
+  performance_lookback_days: 7
+  strategy_weight_adaptation_rate: 0.1
+
+monitoring:
+  # Dashboard
+  dashboard_port: 8080
+  enable_websocket: true
+  update_interval_ms: 500
+
+  # Alerts
+  alert_on_loss_percent: 3  # Alert at 3% loss
+  alert_on_win_percent: 10  # Alert at 10% win
+  alert_on_circuit_break: true
+
+  # Logging
+  log_level: "INFO"
+  log_to_file: true
+  log_to_database: true
+  log_rotation_mb: 100
+
+deployment:
+  # Progressive rollout
+  week_1:
+    capital: 150
+    leverage: 1
+    strategies: ["orderbook_imbalance"]
+  week_2:
+    capital: 500
+    leverage: 2
+    strategies: ["orderbook_imbalance", "volume_profile"]
+  week_3:
+    capital: 1500
+    leverage: 3
+    strategies: ["orderbook_imbalance", "volume_profile", "smart_momentum"]
+  week_4:
+    capital: 5000
+    leverage: 4
+    strategies: ["all"]
+  week_5:
+    capital: 15000
+    leverage: 5
+    strategies: ["all"]
+    ai_enabled: true
