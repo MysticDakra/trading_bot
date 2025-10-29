@@ -68,6 +68,15 @@ hyperliquid:
   snapshot_interval: 1000  # ms
 
 strategies:
+  # DeepSeek Alpha Arena Strategy (HIGHEST PRIORITY - 130% in 10 days!)
+  deepseek_alpha:
+    enabled: true
+    min_confidence: 0.7  # Only high-conviction trades
+    min_risk_reward: 6.0  # Minimum 6:1 R:R like Alpha Arena
+    target_hold_hours: 48  # Patient holding (49h avg in competition)
+    max_trades_per_day: 2  # Highly selective (17 trades in 10 days)
+    leverage: 5  # Conservative for longer holds
+
   orderbook_imbalance:
     enabled: true
     imbalance_threshold: 0.6  # ρ > 0.6 for entry
@@ -77,7 +86,7 @@ strategies:
     nansen_confirmation_required: true
 
   volume_profile:
-    enabled: true
+    enabled: false  # Disabled initially, focus on DeepSeek + Imbalance
     lookback_period_hours: 24
     value_area_percent: 70  # 70% of volume
     lvn_threshold: 0.3  # Low volume node threshold
@@ -91,6 +100,17 @@ strategies:
     smart_money_threshold: 0.3  # >30% net buying
     scale_in_stages: [0.25, 0.25, 0.30, 0.20]  # Progressive scaling
     never_average_down: true
+
+deepseek:
+  # DeepSeek API Configuration
+  api_provider: "netmind"  # "netmind" or "direct"
+  model: "deepseek-chat"  # or "deepseek-r1", "deepseek-coder"
+  temperature: 0.3  # Low temperature for consistent trading decisions
+  max_tokens: 2000
+
+  # NetMind.ai specific (up to $100k free credits!)
+  use_netmind: true
+  netmind_api_url: "https://inference.netmind.ai/v1"
 
 nansen:
   # Query intervals
